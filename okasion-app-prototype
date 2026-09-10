@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>okasion — app prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F7F7F5;--white:#fff;--cacao:#3B2A22;--ink2:#6A574D;--line:rgba(59,42,34,.14);
+  --brick:#A8342F;--mustard:#E0B84C;--olive:#3F5A32;--blush:#F2C4C4;--blue:#BFD7F2;
+  --hard:4px 4px 0 var(--cacao);--soft:0 1px 2px rgba(59,42,34,.12),0 18px 40px -18px rgba(59,42,34,.4);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:#EFEDE6;font-family:Inter,system-ui,sans-serif;color:var(--cacao);display:grid;place-items:center;padding:24px;-webkit-font-smoothing:antialiased;
+  background-image:linear-gradient(rgba(59,42,34,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(59,42,34,.05) 1px,transparent 1px);background-size:32px 32px}
+button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
+:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+h1,h2{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;letter-spacing:-.03em;line-height:.98}
+h1 em,h2 em,.serif{font-family:"Instrument Serif",Georgia,serif;font-style:italic;font-weight:400;letter-spacing:0}
+.mono{font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.03em}
+.logo{height:22px;width:auto;display:block}
+.hint{position:fixed;left:24px;bottom:22px;font-family:"Space Mono",monospace;font-size:11px;color:var(--ink2)}
+.hint b{display:inline-block;border:1px solid var(--ink2);border-radius:4px;padding:1px 6px;margin:0 2px;font-weight:400}
+.tape{position:absolute;width:84px;height:22px;left:50%;top:-11px;transform:translateX(-50%) rotate(-3deg);background:rgba(191,215,242,.6);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.5);z-index:3;pointer-events:none}
+.tape.blush{background:rgba(242,196,196,.65);transform:translateX(-50%) rotate(4deg)}
+.tape.mustard{background:rgba(224,184,76,.6);transform:translateX(-50%) rotate(-5deg)}
+
+/* ---------- phone ---------- */
+.phone{width:390px;height:844px;background:var(--paper);border-radius:52px;border:10px solid #2A2320;box-shadow:0 40px 80px -30px rgba(59,42,34,.6),0 0 0 1px rgba(0,0,0,.35);position:relative;overflow:hidden}
+.notch{position:absolute;left:50%;top:12px;transform:translateX(-50%);width:120px;height:34px;background:#1A1311;border-radius:20px;z-index:60}
+.status{position:absolute;top:19px;left:28px;right:28px;display:flex;justify-content:space-between;font-family:"Space Mono",monospace;font-size:12px;z-index:59}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transform:translateX(24px);transition:opacity .35s,transform .35s cubic-bezier(.2,.8,.2,1)}
+.screen.active{opacity:1;pointer-events:auto;transform:none}
+.btn{height:56px;border-radius:999px;border:2px solid var(--cacao);background:var(--white);font-weight:600;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:var(--hard);transition:transform .12s,box-shadow .12s}
+.btn:hover{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--cacao)} .btn:active{transform:translate(4px,4px);box-shadow:none}
+.btn.brick{background:var(--brick);color:var(--white)} .btn.gold{background:var(--mustard)}
+.kicker{display:inline-flex;align-items:center;gap:8px;font-family:"Space Mono",monospace;font-size:11px;color:var(--brick)}
+.kicker::before{content:"";width:18px;height:2px;background:var(--brick)}
+
+/* ---------- screen 1 ---------- */
+.onb{padding:70px 26px 28px;gap:14px}
+.onb .head{display:flex;justify-content:space-between;align-items:center}
+.onb .art{position:relative;height:200px;margin:4px 0 0}
+.onb .pola{position:absolute;background:var(--white);padding:7px 7px 24px;box-shadow:var(--soft);width:108px;transform:rotate(var(--r,0))}
+.onb .pola img{width:100%;aspect-ratio:4/5;object-fit:cover;display:block;background:var(--blush)}
+.onb .pola span{position:absolute;left:8px;bottom:7px;font-family:"Space Mono",monospace;font-size:9px;color:var(--ink2)}
+.onb h1{font-size:42px}
+.onb h1 em{color:var(--brick)}
+.onb p{color:var(--ink2);font-size:14px;max-width:32ch;margin-top:-4px}
+.field{display:grid;gap:8px}
+.field label{font-family:"Space Mono",monospace;font-size:11px;color:var(--ink2)}
+.input{height:52px;border-radius:14px;background:var(--white);border:1.5px solid var(--cacao);padding:0 16px;font:inherit;font-size:16px;color:var(--cacao);width:100%;transition:box-shadow .15s}
+.input::placeholder{color:rgba(59,42,34,.4)}
+.input:focus{outline:none;box-shadow:var(--hard)}
+.chipgrp{display:flex;flex-wrap:wrap;gap:8px}
+.chip{height:38px;padding:0 14px;border-radius:999px;border:1.5px solid var(--cacao);background:var(--white);font-size:13px;font-weight:500;transition:background .15s,color .15s,transform .1s}
+.chip:active{transform:scale(.97)}
+.chip[aria-checked="true"]{background:var(--cacao);color:var(--white)}
+.err{font-family:"Space Mono",monospace;font-size:11px;color:var(--brick);min-height:14px;margin-top:-8px}
+.onb .btn{margin-top:auto}
+
+/* ---------- screen 2 ---------- */
+.topbar{position:absolute;top:0;left:0;right:0;height:110px;padding:60px 20px 0;display:flex;align-items:center;justify-content:space-between;z-index:20;
+  background:linear-gradient(180deg,rgba(247,247,245,.95),rgba(247,247,245,.7) 75%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);mask:linear-gradient(#000 75%,transparent);-webkit-mask:linear-gradient(#000 75%,transparent)}
+.topbar .ttl{text-align:center;display:grid;gap:2px}
+.topbar .ttl b{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:17px;letter-spacing:-.02em}
+.topbar .ttl span{font-family:"Instrument Serif",Georgia,serif;font-style:italic;font-size:14px;color:var(--ink2)}
+.icon{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--cacao);background:var(--white);display:grid;place-items:center;box-shadow:2px 2px 0 var(--cacao)}
+.icon:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--cacao)}
+.icon svg{width:18px;height:18px;stroke:var(--cacao);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.stack{position:absolute;left:22px;right:22px;top:118px;bottom:154px}
+.card{position:absolute;inset:0;background:var(--white);padding:10px 10px 0;box-shadow:var(--soft);transform-origin:50% 100%;transition:transform .5s cubic-bezier(.2,.8,.2,1),opacity .5s;will-change:transform;touch-action:none;user-select:none;display:flex;flex-direction:column;border-radius:4px}
+.card .ph{flex:1;overflow:hidden;background:var(--blush);position:relative;min-height:0}
+.card img{width:100%;height:100%;object-fit:cover;pointer-events:none;display:block}
+.card .cap{padding:14px 6px 14px;display:grid;gap:8px}
+.card .cap .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.card h2{font-size:22px}
+.card .loc{font-family:"Space Mono",monospace;font-size:10px;color:var(--ink2);display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.pin{width:11px;height:11px;fill:none;stroke:var(--ink2);stroke-width:2}
+.card .role{font-family:"Instrument Serif",Georgia,serif;font-style:italic;font-size:14px;color:var(--ink2);margin-top:-4px}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-family:"Space Mono",monospace;font-size:10px;text-transform:uppercase;letter-spacing:.04em;padding:5px 9px;border-radius:999px;border:1.5px solid var(--brick);color:var(--brick);background:var(--white)}
+.tag.hit{background:var(--brick);color:var(--white)}
+.card .fit{position:absolute;top:12px;left:12px;font-family:"Space Mono",monospace;font-size:10px;background:var(--white);border:1.5px solid var(--cacao);padding:5px 9px;border-radius:999px;box-shadow:2px 2px 0 var(--cacao)}
+.card .fit i{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--olive);margin-right:6px}
+.card .stamp{position:absolute;top:22px;font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:26px;letter-spacing:.02em;padding:5px 12px;border:3px solid;border-radius:6px;opacity:0;transition:opacity .15s;pointer-events:none;background:rgba(255,255,255,.85);z-index:2}
+.card .stamp.like{right:20px;color:var(--olive);border-color:var(--olive);transform:rotate(14deg)}
+.card .stamp.nope{left:20px;color:var(--brick);border-color:var(--brick);transform:rotate(-14deg)}
+.card.pos1{transform:translateY(12px) rotate(2.5deg) scale(.97)}
+.card.pos2{transform:translateY(24px) rotate(-3deg) scale(.94)}
+.card.gone-l{transform:translate(-140%,40px) rotate(-22deg);opacity:0}
+.card.gone-r{transform:translate(140%,40px) rotate(22deg);opacity:0}
+.card.dragging{transition:none}
+.dock{position:absolute;left:0;right:0;bottom:40px;display:flex;justify-content:center;align-items:center;gap:22px;z-index:20}
+.dock button{border-radius:50%;display:grid;place-items:center;border:2px solid var(--cacao);box-shadow:var(--hard);transition:transform .12s,box-shadow .12s}
+.dock button:hover{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--cacao)} .dock button:active{transform:translate(4px,4px);box-shadow:none}
+.dock .pass{width:62px;height:62px;background:var(--blush);color:var(--brick)}
+.dock .like{width:76px;height:76px;background:var(--olive);color:var(--white)}
+.dock .undo{width:44px;height:44px;background:var(--white);color:var(--ink2);box-shadow:2px 2px 0 var(--cacao)}
+.dock svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.dock .like svg{fill:currentColor;stroke:none;width:32px;height:32px}
+.dock .undo svg{width:16px;height:16px;stroke-width:2}
+.counter{position:absolute;left:0;right:0;bottom:18px;text-align:center;font-family:"Space Mono",monospace;font-size:10px;color:var(--ink2);z-index:20}
+.empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:40px;color:var(--ink2);font-size:14px;font-family:"Instrument Serif",Georgia,serif;font-style:italic;font-size:20px}
+.toast{position:absolute;left:50%;top:122px;transform:translateX(-50%) translateY(-10px);background:var(--cacao);color:var(--paper);padding:9px 14px;border-radius:999px;font-size:12px;opacity:0;transition:opacity .25s,transform .25s;z-index:30;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%)}
+
+/* ---------- screen 3 ---------- */
+.match{padding:76px 26px 30px;align-items:center;text-align:center;gap:14px;background:var(--paper)}
+.match .stars{position:absolute;inset:0;pointer-events:none}
+.match .stars span{position:absolute;color:var(--brick);font-size:26px;animation:pop .9s cubic-bezier(.2,.8,.2,1) both}
+.match .stars span:nth-child(even){color:var(--mustard)}
+@keyframes pop{from{transform:scale(0) rotate(-30deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+.match .kicker{margin-top:14px}
+.match h1{font-size:44px}
+.pair{position:relative;height:210px;width:100%;margin:8px 0}
+.pair .av{position:absolute;top:8px;width:150px;background:var(--white);padding:8px 8px 30px;box-shadow:var(--soft)}
+.pair .av .ph{aspect-ratio:4/5;overflow:hidden;background:var(--blush)}
+.pair .av img{width:100%;height:100%;object-fit:cover;display:block}
+.pair .av span{position:absolute;left:8px;bottom:8px;font-family:"Space Mono",monospace;font-size:9px;color:var(--ink2)}
+.pair .you{left:calc(50% - 152px);transform:rotate(-7deg)}
+.pair .you .ph{display:grid;place-items:center;background:var(--blue)}
+.pair .you svg{width:64px;height:64px;fill:var(--cacao);opacity:.5}
+.pair .them{left:calc(50% + 2px);transform:rotate(7deg);z-index:2}
+.pair .heart{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;width:54px;height:54px;border-radius:50%;background:var(--mustard);border:2px solid var(--cacao);display:grid;place-items:center;box-shadow:var(--hard);animation:beat 1.2s ease-in-out infinite}
+.pair .heart svg{width:24px;height:24px;fill:var(--cacao)}
+@keyframes beat{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.1)}}
+.match .who b{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:20px;display:block}
+.match .who span{font-family:"Instrument Serif",Georgia,serif;font-style:italic;color:var(--ink2);font-size:15px}
+.match .sum{background:var(--white);border:1.5px dashed var(--cacao);border-radius:12px;padding:12px 14px;font-size:12px;color:var(--ink2);width:100%;display:grid;gap:6px;text-align:left}
+.match .sum b{color:var(--cacao);font-weight:600}
+.match .btn{width:100%;margin-top:auto}
+.match .link{color:var(--ink2);font-size:13px;text-decoration:underline;text-underline-offset:4px}
+.match .logo{height:18px;opacity:.9}
+
+/* ---------- profile sheet ---------- */
+.card .rate{position:absolute;top:12px;right:12px;font-family:"Space Mono",monospace;font-size:10px;background:var(--mustard);border:1.5px solid var(--cacao);padding:5px 9px;border-radius:999px;box-shadow:2px 2px 0 var(--cacao)}
+.card .more{display:inline-flex;align-items:center;gap:6px;font-family:"Space Mono",monospace;font-size:10px;color:var(--brick);text-decoration:underline;text-underline-offset:3px;margin-top:2px}
+.card .more svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.sheet{position:absolute;inset:0;z-index:40;background:var(--paper);transform:translateY(100%);transition:transform .45s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column}
+.sheet.open{transform:none}
+.sheet .close{position:absolute;top:58px;left:18px;z-index:5}
+.sheet .scroll{flex:1;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;padding-bottom:120px}
+.sheet .scroll::-webkit-scrollbar{display:none}
+.sheet .hero{position:relative;aspect-ratio:4/5;background:var(--blush);overflow:hidden}
+.sheet .hero img{width:100%;height:100%;object-fit:cover;display:block}
+.sheet .hero .grad{position:absolute;inset:0;background:linear-gradient(180deg,rgba(247,247,245,.5),transparent 25%,transparent 60%,rgba(247,247,245,1))}
+.sheet .hero .fit{position:absolute;bottom:18px;left:18px;font-family:"Space Mono",monospace;font-size:10px;background:var(--white);border:1.5px solid var(--cacao);padding:5px 9px;border-radius:999px;box-shadow:2px 2px 0 var(--cacao)}
+.sheet .hero .fit i{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--olive);margin-right:6px}
+.sheet .body{padding:0 22px;display:grid;gap:22px;margin-top:-6px;position:relative;z-index:2}
+.sheet .name h2{font-size:30px}
+.sheet .name .role{font-family:"Instrument Serif",Georgia,serif;font-style:italic;font-size:17px;color:var(--ink2);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sheet .name .loc{font-family:"Space Mono",monospace;font-size:10px;color:var(--ink2);display:inline-flex;align-items:center;gap:4px}
+.ratebox{background:var(--white);border:1.5px solid var(--cacao);border-radius:14px;padding:14px 16px;display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;box-shadow:var(--hard)}
+.ratebox b{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:26px;letter-spacing:-.02em;grid-row:span 2}
+.ratebox span{font-family:"Space Mono",monospace;font-size:10px;color:var(--ink2);text-align:right}
+.ratebox .av{color:var(--olive)}
+.sheet h3{font-family:"Space Mono",monospace;font-size:11px;font-weight:400;color:var(--brick);letter-spacing:.04em;display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.sheet h3::before{content:"";width:18px;height:2px;background:var(--brick)}
+.sheet p{font-size:14px;line-height:1.55;color:var(--cacao)}
+.port{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.port figure{background:var(--white);padding:6px 6px 22px;box-shadow:var(--soft);position:relative;transform:rotate(var(--r,0))}
+.port figure:nth-child(1){--r:-2deg;grid-column:span 2}.port figure:nth-child(2){--r:1.5deg}.port figure:nth-child(3){--r:-1deg}.port figure:nth-child(4){--r:2deg}.port figure:nth-child(5){--r:-1.5deg}
+.port .pph{background:var(--blush);aspect-ratio:1;overflow:hidden}
+.port figure:nth-child(1) .pph{aspect-ratio:16/10}
+.port img{width:100%;height:100%;object-fit:cover;display:block}
+.port span{position:absolute;left:6px;bottom:5px;font-family:"Space Mono",monospace;font-size:9px;color:var(--ink2)}
+.sheet .tags .tag{font-size:11px;padding:7px 11px}
+.sheet .note{background:var(--mustard);border:1.5px solid var(--cacao);padding:12px 14px;font-size:13px;transform:rotate(-1deg);box-shadow:var(--hard)}
+.sheet .note b{font-family:"Instrument Serif",Georgia,serif;font-style:italic;font-weight:400;font-size:18px;display:block;margin-bottom:2px}
+.sheet .actions{position:absolute;left:0;right:0;bottom:0;padding:16px 22px 34px;background:linear-gradient(180deg,transparent,var(--paper) 35%);display:flex;gap:12px;z-index:5}
+.sheet .actions .btn{flex:1;height:52px}
+.sheet .actions .btn.blush{background:var(--blush);color:var(--brick)}
+.sheet .actions .btn.olive{background:var(--olive);color:var(--white)}
+
+/* ---------- chat ---------- */
+.chat{background:var(--paper)}
+.chat .bar{position:absolute;top:0;left:0;right:0;height:112px;padding:58px 18px 0;display:flex;align-items:center;gap:12px;z-index:5;background:linear-gradient(180deg,var(--paper) 80%,transparent)}
+.chat .bar .av{width:40px;height:40px;border-radius:50%;overflow:hidden;background:var(--blush);border:1.5px solid var(--cacao);flex:none}
+.chat .bar .av img{width:100%;height:100%;object-fit:cover}
+.chat .bar .who{flex:1;min-width:0}
+.chat .bar .who b{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:16px;display:block;letter-spacing:-.02em}
+.chat .bar .who span{font-family:"Space Mono",monospace;font-size:10px;color:var(--olive)}
+.msgs{position:absolute;top:112px;bottom:92px;left:0;right:0;overflow-y:auto;padding:8px 18px 20px;display:flex;flex-direction:column;gap:10px;scrollbar-width:none}
+.msgs::-webkit-scrollbar{display:none}
+.day{align-self:center;font-family:"Space Mono",monospace;font-size:10px;color:var(--ink2);background:var(--white);border:1px dashed var(--cacao);padding:3px 10px;border-radius:999px;margin:4px 0 6px}
+.m{max-width:78%;padding:11px 14px;font-size:14px;line-height:1.45;border-radius:18px;animation:in .3s ease both;position:relative}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.m.them{align-self:flex-start;background:var(--white);border:1.5px solid var(--cacao);border-bottom-left-radius:4px}
+.m.me{align-self:flex-end;background:var(--cacao);color:var(--paper);border-bottom-right-radius:4px}
+.m time{display:block;font-family:"Space Mono",monospace;font-size:9px;opacity:.6;margin-top:4px}
+.typing{align-self:flex-start;background:var(--white);border:1.5px solid var(--cacao);border-radius:18px;border-bottom-left-radius:4px;padding:12px 14px;display:flex;gap:4px}
+.typing i{width:6px;height:6px;border-radius:50%;background:var(--ink2);animation:dot 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes dot{0%,100%{opacity:.3;transform:translateY(0)}50%{opacity:1;transform:translateY(-3px)}}
+.proposal{align-self:stretch;background:var(--white);border:1.5px solid var(--cacao);border-radius:14px;padding:14px 16px;box-shadow:var(--hard);display:grid;gap:8px;animation:in .3s ease both;margin-top:4px}
+.proposal .k{font-family:"Space Mono",monospace;font-size:10px;color:var(--brick);display:flex;align-items:center;gap:8px}
+.proposal .k::before{content:"";width:16px;height:2px;background:var(--brick)}
+.proposal b{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:18px;letter-spacing:-.02em}
+.proposal .line{display:flex;justify-content:space-between;font-size:13px;color:var(--ink2);border-top:1px dashed var(--line);padding-top:6px}
+.proposal .line em{font-style:normal;color:var(--cacao);font-weight:600}
+.proposal .btn{height:46px;font-size:14px;margin-top:4px}
+.compose{position:absolute;left:0;right:0;bottom:0;padding:12px 16px 28px;display:flex;gap:10px;background:linear-gradient(180deg,transparent,var(--paper) 30%)}
+.compose input{flex:1;height:48px;border-radius:999px;border:1.5px solid var(--cacao);background:var(--white);padding:0 16px;font:inherit;font-size:14px}
+.compose input:focus{outline:none;box-shadow:var(--hard)}
+.compose button{width:48px;height:48px;border-radius:50%;background:var(--brick);color:#fff;border:1.5px solid var(--cacao);box-shadow:2px 2px 0 var(--cacao);display:grid;place-items:center}
+.compose button svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.quick{position:absolute;left:0;right:0;bottom:92px;padding:0 16px 6px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+.quick::-webkit-scrollbar{display:none}
+.quick button{white-space:nowrap;height:34px;padding:0 12px;border-radius:999px;border:1.5px solid var(--cacao);background:var(--white);font-size:12px;font-weight:500}
+.quick button:active{background:var(--blue)}
+
+/* ---------- booking ---------- */
+.book{padding:60px 0 0;background:var(--paper)}
+.book .bar{padding:0 18px;display:flex;align-items:center;gap:12px;height:52px}
+.book .bar h2{font-size:20px}
+.book .scroll{flex:1;overflow-y:auto;padding:10px 22px 130px;display:grid;gap:18px;align-content:start;scrollbar-width:none}
+.book .scroll::-webkit-scrollbar{display:none}
+.stub{background:var(--white);border:1.5px solid var(--cacao);border-radius:14px;position:relative;box-shadow:var(--hard)}
+.stub .top{padding:16px 18px;display:flex;gap:12px;align-items:center;border-bottom:1.5px dashed var(--cacao)}
+.stub .top .av{width:46px;height:46px;border-radius:8px;overflow:hidden;background:var(--blush);flex:none}
+.stub .top .av img{width:100%;height:100%;object-fit:cover}
+.stub .top b{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:17px;display:block;letter-spacing:-.02em}
+.stub .top span{font-family:"Instrument Serif",Georgia,serif;font-style:italic;color:var(--ink2);font-size:14px}
+.stub::before,.stub::after{content:"";position:absolute;width:18px;height:18px;border-radius:50%;background:var(--paper);border:1.5px solid var(--cacao);left:-10px;top:66px}
+.stub::after{left:auto;right:-10px}
+.stub dl{padding:14px 18px;display:grid;grid-template-columns:1fr 1fr;gap:12px 14px}
+.stub dt{font-family:"Space Mono",monospace;font-size:10px;color:var(--ink2);margin-bottom:2px}
+.stub dd{font-size:14px;font-weight:500}
+.stub dd small{display:block;font-weight:400;color:var(--ink2);font-size:12px}
+.tot{background:var(--white);border:1.5px solid var(--cacao);border-radius:14px;padding:14px 18px;display:grid;gap:8px}
+.tot .row{display:flex;justify-content:space-between;font-size:14px;color:var(--ink2)}
+.tot .row.big{border-top:1.5px dashed var(--cacao);padding-top:10px;color:var(--cacao);font-weight:600}
+.tot .row.big b{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:22px;letter-spacing:-.02em}
+.tot .row.dep{background:var(--mustard);margin:4px -18px -14px;padding:12px 18px;border-radius:0 0 12px 12px;color:var(--cacao);font-weight:600}
+.pay{display:grid;gap:8px}
+.pay h3{font-family:"Space Mono",monospace;font-size:11px;font-weight:400;color:var(--brick)}
+.pay .opts{display:flex;gap:8px}
+.pay .opt{flex:1;height:44px;border-radius:12px;border:1.5px solid var(--cacao);background:var(--white);font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px}
+.pay .opt[aria-checked="true"]{background:var(--cacao);color:var(--white)}
+.terms{font-size:12px;color:var(--ink2);line-height:1.5}
+.book .actions{position:absolute;left:0;right:0;bottom:0;padding:16px 22px 34px;background:linear-gradient(180deg,transparent,var(--paper) 35%)}
+.book .actions .btn{width:100%}
+
+/* ---------- confirmed ---------- */
+.done{padding:64px 22px 30px;background:var(--paper);gap:14px}
+.done .stars{position:absolute;inset:0;pointer-events:none}
+.done .stars span{position:absolute;color:var(--brick);font-size:22px;animation:pop .9s cubic-bezier(.2,.8,.2,1) both}
+.done .stars span:nth-child(even){color:var(--mustard)}
+.done .scroll{flex:1;overflow-y:auto;display:grid;gap:16px;align-content:start;scrollbar-width:none;padding-bottom:110px}
+.done .scroll::-webkit-scrollbar{display:none}
+.done h1{font-size:40px}
+.ref{background:var(--white);border:1.5px solid var(--cacao);border-radius:14px;padding:16px 18px;display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center;box-shadow:var(--hard);transform:rotate(-1deg)}
+.ref .k{font-family:"Space Mono",monospace;font-size:10px;color:var(--ink2)}
+.ref b{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:18px;letter-spacing:-.02em}
+.ref .stampok{grid-row:span 2;width:64px;height:64px;border-radius:50%;border:2px solid var(--olive);color:var(--olive);display:grid;place-items:center;font-family:"Space Mono",monospace;font-size:9px;text-align:center;line-height:1.1;transform:rotate(12deg)}
+.ref .stampok::after{content:"";position:absolute;inset:4px;border:1px dashed var(--olive);border-radius:50%}
+.ref .stampok{position:relative}
+.tl{display:grid;gap:0;position:relative;padding-left:26px}
+.tl::before{content:"";position:absolute;left:9px;top:8px;bottom:8px;border-left:2px dashed var(--cacao);opacity:.4}
+.tl li{list-style:none;position:relative;padding:0 0 18px}
+.tl li::before{content:"";position:absolute;left:-23px;top:4px;width:14px;height:14px;border-radius:50%;background:var(--white);border:2px solid var(--cacao)}
+.tl li.ok::before{background:var(--olive);border-color:var(--olive)}
+.tl li.now::before{background:var(--mustard)}
+.tl b{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:15px;display:block;letter-spacing:-.01em}
+.tl span{font-size:13px;color:var(--ink2);display:block}
+.tl small{font-family:"Space Mono",monospace;font-size:10px;color:var(--olive)}
+.done .actions{position:absolute;left:0;right:0;bottom:0;padding:16px 22px 34px;background:linear-gradient(180deg,transparent,var(--paper) 35%);display:grid;gap:10px}
+.done .actions .link{text-align:center;color:var(--ink2);font-size:13px;text-decoration:underline;text-underline-offset:4px}
+@media(max-height:900px){body{padding:10px}.phone{transform:scale(.92);transform-origin:top center}}
+</style>
+</head>
+<body>
+
+<div class="phone" id="phone">
+  <div class="notch"></div>
+  <div class="status"><span>9:41</span><span>okasion.ph</span></div>
+
+  <!-- ===== Screen 1 ===== -->
+  <section class="screen onb active" id="s1" aria-label="Onboarding">
+    <div class="head"><svg viewBox="0 -100 480 130" class="logo" role="img" aria-label="okasion"><g><path d="M33.839999999999996 1.68Q24.72 1.68 17.64 -1.98Q10.559999999999999 -5.64 6.6 -13.02Q2.6399999999999997 -20.4 2.6399999999999997 -31.56Q2.6399999999999997 -43.199999999999996 6.779999999999999 -50.58Q10.92 -57.96 18.06 -61.5Q25.2 -65.03999999999999 34.199999999999996 -65.03999999999999Q43.559999999999995 -65.03999999999999 50.58 -61.379999999999995Q57.599999999999994 -57.72 61.49999999999999 -50.34Q65.39999999999999 -42.96 65.39999999999999 -31.68Q65.39999999999999 -20.04 61.25999999999999 -12.66Q57.12 -5.279999999999999 49.98 -1.7999999999999998Q42.839999999999996 1.68 33.839999999999996 1.68ZM34.32 -12.6Q38.04 -12.6 40.56 -14.7Q43.08 -16.8 44.4 -20.880000000000003Q45.72 -24.96 45.72 -30.599999999999998Q45.72 -36.839999999999996 44.28 -41.099999999999994Q42.839999999999996 -45.36 40.14 -47.64Q37.44 -49.92 33.6 -49.92Q30.0 -49.92 27.48 -47.82Q24.96 -45.72 23.64 -41.64Q22.32 -37.559999999999995 22.32 -31.799999999999997Q22.32 -22.68 25.5 -17.64Q28.68 -12.6 34.32 -12.6Z M72.35999999999999 0.0V-84.0H91.32V-39.48Q95.39999999999999 -41.64 98.34 -44.4Q101.28 -47.16 103.32 -50.339999999999996Q105.35999999999999 -53.519999999999996 106.61999999999999 -56.81999999999999Q107.88 -60.12 108.72 -63.36H131.04Q129.72 -58.559999999999995 127.25999999999999 -54.059999999999995Q124.79999999999998 -49.559999999999995 121.19999999999999 -45.66Q117.6 -41.76 112.85999999999999 -38.64Q108.11999999999999 -35.519999999999996 102.35999999999999 -33.48V-32.519999999999996Q109.79999999999998 -33.72 114.53999999999999 -32.82Q119.27999999999999 -31.919999999999998 122.03999999999999 -29.46Q124.79999999999998 -27.0 126.29999999999998 -23.28Q127.79999999999998 -19.56 128.64 -15.0L131.39999999999998 0.0H110.39999999999999L109.07999999999998 -10.559999999999999Q108.6 -14.399999999999999 107.75999999999999 -17.759999999999998Q106.91999999999999 -21.119999999999997 104.51999999999998 -23.22Q102.11999999999999 -25.32 96.96 -25.32H91.32V0.0Z M153.95999999999998 1.68Q149.15999999999997 1.68 144.83999999999997 0.0Q140.51999999999998 -1.68 137.76 -5.46Q134.99999999999997 -9.24 134.99999999999997 -15.6Q134.99999999999997 -21.48 137.27999999999997 -25.14Q139.55999999999997 -28.799999999999997 143.39999999999998 -31.02Q147.23999999999998 -33.24 151.79999999999998 -34.379999999999995Q156.35999999999999 -35.519999999999996 160.79999999999998 -36.36Q167.03999999999996 -37.559999999999995 170.15999999999997 -38.28Q173.27999999999997 -39.0 174.41999999999996 -39.96Q175.55999999999997 -40.92 175.55999999999997 -42.6Q175.55999999999997 -46.08 172.97999999999996 -47.879999999999995Q170.39999999999998 -49.68 166.2 -49.68Q163.55999999999997 -49.68 160.91999999999996 -48.72Q158.27999999999997 -47.76 156.59999999999997 -45.3Q154.92 -42.839999999999996 155.03999999999996 -38.28L137.76 -39.48Q137.51999999999998 -47.04 140.03999999999996 -52.019999999999996Q142.55999999999997 -57.0 146.94 -59.82Q151.32 -62.64 156.54 -63.839999999999996Q161.76 -65.03999999999999 166.92 -65.03999999999999Q176.39999999999998 -65.03999999999999 182.51999999999998 -61.5Q188.64 -57.96 191.57999999999998 -51.3Q194.51999999999998 -44.64 194.51999999999998 -35.16V-23.88Q194.51999999999998 -19.919999999999998 194.51999999999998 -15.899999999999999Q194.51999999999998 -11.879999999999999 194.51999999999998 -7.92Q194.51999999999998 -3.96 194.51999999999998 0.0H177.71999999999997Q177.71999999999997 -4.32 177.71999999999997 -8.76Q177.71999999999997 -13.2 177.71999999999997 -18.12H176.99999999999997Q176.51999999999998 -12.719999999999999 173.45999999999998 -8.219999999999999Q170.39999999999998 -3.7199999999999998 165.41999999999996 -1.02Q160.43999999999997 1.68 153.95999999999998 1.68ZM161.99999999999997 -12.48Q164.03999999999996 -12.48 166.37999999999997 -13.26Q168.71999999999997 -14.04 170.82 -15.84Q172.92 -17.64 174.23999999999998 -20.82Q175.55999999999997 -24.0 175.55999999999997 -28.68V-31.56L178.79999999999998 -31.919999999999998Q177.83999999999997 -30.36 175.61999999999998 -29.4Q173.39999999999998 -28.439999999999998 170.64 -27.9Q167.88 -27.36 165.06 -26.82Q162.23999999999998 -26.279999999999998 159.83999999999997 -25.38Q157.43999999999997 -24.48 155.93999999999997 -22.98Q154.43999999999997 -21.48 154.43999999999997 -18.84Q154.43999999999997 -15.719999999999999 156.65999999999997 -14.1Q158.87999999999997 -12.48 161.99999999999997 -12.48Z M230.15999999999997 1.68Q223.79999999999998 1.68 218.33999999999997 0.42Q212.87999999999997 -0.84 208.85999999999996 -3.5999999999999996Q204.83999999999997 -6.359999999999999 202.73999999999998 -10.98Q200.64 -15.6 200.99999999999997 -22.2L217.92 -23.64Q218.15999999999997 -19.68 219.71999999999997 -17.1Q221.27999999999997 -14.52 224.03999999999996 -13.32Q226.79999999999998 -12.12 230.76 -12.12Q234.47999999999996 -12.12 237.17999999999995 -13.379999999999999Q239.87999999999997 -14.639999999999999 239.87999999999997 -17.64Q239.87999999999997 -19.2 238.91999999999996 -20.22Q237.95999999999998 -21.24 235.38 -22.14Q232.79999999999998 -23.04 227.87999999999997 -24.24Q221.76 -25.8 216.83999999999997 -27.36Q211.92 -28.919999999999998 208.44 -31.08Q204.95999999999998 -33.24 203.15999999999997 -36.42Q201.35999999999999 -39.6 201.35999999999999 -44.28Q201.35999999999999 -50.879999999999995 204.89999999999998 -55.5Q208.43999999999997 -60.12 214.67999999999998 -62.58Q220.92 -65.03999999999999 229.07999999999998 -65.03999999999999Q236.39999999999998 -65.03999999999999 242.76 -62.75999999999999Q249.11999999999998 -60.48 252.77999999999997 -55.31999999999999Q256.44 -50.16 255.47999999999996 -41.64L238.91999999999996 -40.08Q239.27999999999997 -43.559999999999995 237.95999999999998 -46.019999999999996Q236.64 -48.48 234.11999999999998 -49.739999999999995Q231.59999999999997 -51.0 227.99999999999997 -51.0Q223.92 -51.0 221.7 -49.5Q219.47999999999996 -48.0 219.47999999999996 -45.72Q219.47999999999996 -43.92 220.85999999999996 -42.66Q222.23999999999998 -41.4 225.17999999999998 -40.5Q228.11999999999998 -39.6 232.79999999999998 -38.519999999999996Q236.87999999999997 -37.68 241.32 -36.36Q245.76 -35.04 249.59999999999997 -32.82Q253.43999999999997 -30.599999999999998 255.83999999999997 -27.0Q258.23999999999995 -23.4 258.23999999999995 -17.88Q258.23999999999995 -12.0 254.99999999999997 -7.5600000000000005Q251.76 -3.12 245.51999999999998 -0.7200000000000001Q239.27999999999997 1.68 230.15999999999997 1.68Z" fill="#3B2A22" /><path d="M274.08 -67.92Q268.55999999999995 -67.92 265.61999999999995 -70.26Q262.67999999999995 -72.60000000000001 262.67999999999995 -77.04Q262.67999999999995 -81.60000000000001 265.61999999999995 -83.94Q268.55999999999995 -86.28 274.08 -86.28Q279.71999999999997 -86.28 282.65999999999997 -83.88Q285.59999999999997 -81.48 285.59999999999997 -77.04Q285.59999999999997 -72.72 282.65999999999997 -70.32Q279.71999999999997 -67.92 274.08 -67.92Z" fill="#E0B84C" /><path d="M264.47999999999996 0.0V-63.36H283.91999999999996V0.0Z" fill="#3B2A22" /><polygon points="302.90764799999994,-59.127551999999994 368.78177279999994,-59.127551999999994 395.3625599999999,-31.68 368.78177279999994,-4.232448000000003 302.90764799999994,-4.232448000000003" fill="#A8342F" stroke="#A8342F" stroke-width="17.335295999999996" stroke-linejoin="round"/><circle cx="326.0213759999999" cy="-31.68" r="16.612992" fill="#E0B84C"/><polyline points="355.72251647999997,-43.959168 365.54585088,-31.68 355.72251647999997,-19.400832" fill="none" stroke="#F4EFD8" stroke-width="7.584191999999999" stroke-linecap="round" stroke-linejoin="round"/><polyline points="373.2889497599999,-43.959168 383.11228415999994,-31.68 373.2889497599999,-19.400832" fill="none" stroke="#F4EFD8" stroke-width="7.584191999999999" stroke-linecap="round" stroke-linejoin="round"/><path d="M417.3502079999999 0.0V-35.879999999999995V-63.36H433.7902079999999V-37.559999999999995H434.75020799999993Q435.4702079999999 -46.92 437.87020799999993 -52.980000000000004Q440.2702079999999 -59.04 444.7102079999999 -62.03999999999999Q449.1502079999999 -65.03999999999999 455.9902079999999 -65.03999999999999Q466.3102079999999 -65.03999999999999 471.5302079999999 -58.199999999999996Q476.75020799999993 -51.36 476.75020799999993 -37.8V0.0H457.3102079999999V-35.28Q457.3102079999999 -41.76 455.33020799999986 -45.0Q453.3502079999999 -48.239999999999995 449.0302079999999 -48.239999999999995Q445.4302079999999 -48.239999999999995 442.6702079999999 -45.72Q439.9102079999999 -43.199999999999996 438.3502079999999 -37.559999999999995Q436.7902079999999 -31.919999999999998 436.7902079999999 -22.439999999999998V0.0Z" fill="#3B2A22" /></g></svg><span class="kicker">now boarding</span></div>
+    <div class="art" aria-hidden="true">
+      <figure class="pola" style="left:6%;top:14px;--r:-6deg"><div class="tape"></div><img src="https://images.unsplash.com/photo-1522337660859-02fbefca4702?auto=format&fit=crop&w=800&h=1000&q=80" alt=""><span>soft_glam.jpg</span></figure>
+      <figure class="pola" style="left:36%;top:0;--r:3deg;z-index:2"><div class="tape mustard"></div><img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=800&h=1000&q=80" alt=""><span>0214_studio.jpg</span></figure>
+      <figure class="pola" style="left:66%;top:18px;--r:-3deg"><div class="tape blush"></div><img src="https://images.unsplash.com/photo-1478146896981-b80fe463b330?auto=format&fit=crop&w=800&h=1000&q=80" alt=""><span>garden_set.jpg</span></figure>
+    </div>
+    <h1>What's the <em>okasion?</em></h1>
+    <p>Tell us the event and who you need. We'll build a deck of creatives whose work already looks like your mood board.</p>
+    <div class="field">
+      <label for="evt">the event</label>
+      <input class="input" id="evt" placeholder="Graduation, Debut, Wedding" autocomplete="off" list="evts">
+      <datalist id="evts"><option>Graduation</option><option>Debut</option><option>Wedding</option><option>Grad ball</option><option>Photoshoot</option></datalist>
+    </div>
+    <div class="field">
+      <label>who do you need</label>
+      <div class="chipgrp" role="radiogroup" id="svc">
+        <button class="chip" role="radio" aria-checked="false" data-svc="Makeup Artist">Makeup Artist</button>
+        <button class="chip" role="radio" aria-checked="false" data-svc="Photographer">Photographer</button>
+        <button class="chip" role="radio" aria-checked="false" data-svc="Dressmaker">Dressmaker</button>
+        <button class="chip" role="radio" aria-checked="false" data-svc="Event Stylist">Event Stylist</button>
+        <button class="chip" role="radio" aria-checked="false" data-svc="Hairstylist">Hairstylist</button>
+      </div>
+    </div>
+    <div class="err" id="err"></div>
+    <button class="btn brick" id="go">Find my matches</button>
+  </section>
+
+  <!-- ===== Screen 2 ===== -->
+  <section class="screen" id="s2" aria-label="Swipe deck">
+    <header class="topbar">
+      <button class="icon" id="back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button>
+      <div class="ttl"><b id="svcTitle">Makeup Artist</b><span id="evtTitle">for your debut</span></div>
+      <button class="icon" id="filter" aria-label="Filter"><svg viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></svg></button>
+    </header>
+    <div class="toast" id="toast"></div>
+    <div class="stack" id="stack"></div>
+    <div class="dock">
+      <button class="undo" id="undo" aria-label="Undo"><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></button>
+      <button class="pass" id="pass" aria-label="Pass"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <button class="like" id="like" aria-label="Match"><svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.5-9A5.5 5.5 0 0 1 12 6.2 5.5 5.5 0 0 1 21.5 12c-2 4.4-9.5 9-9.5 9z"/></svg></button>
+    </div>
+    <div class="counter" id="counter"></div>
+    <div class="sheet" id="sheet" aria-label="Creative profile">
+      <button class="icon close" id="sheetClose" aria-label="Close profile"><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button>
+      <div class="scroll" id="sheetScroll">
+        <div class="hero"><img id="phImg" src="" alt=""><div class="grad"></div><div class="fit" id="phFit"></div></div>
+        <div class="body">
+          <div class="name"><h2 id="phHandle"></h2><div class="role"><span id="phRole"></span><span class="loc" id="phLoc"></span></div></div>
+          <div class="ratebox"><b id="phRate"></b><span id="phUnit"></span><span class="av" id="phAvail"></span></div>
+          <div><h3>about</h3><p id="phBio"></p></div>
+          <div><h3>portfolio</h3><div class="port" id="phPort"></div></div>
+          <div><h3>style tags</h3><div class="tags" id="phTags"></div></div>
+          <div class="note"><b>How matching works</b>Your style tags are compared with this creative's tagged portfolio. Swipe right and, if they're taking bookings for your date, you're connected.</div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn blush" id="phPass">Not my vibe</button>
+        <button class="btn olive" id="phLike">It's a match</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Screen 3 ===== -->
+  <section class="screen match" id="s3" aria-label="It's a match">
+    <div class="stars" id="stars"></div>
+    <svg viewBox="0 -100 480 130" class="logo" role="img" aria-label="okasion"><g><path d="M33.839999999999996 1.68Q24.72 1.68 17.64 -1.98Q10.559999999999999 -5.64 6.6 -13.02Q2.6399999999999997 -20.4 2.6399999999999997 -31.56Q2.6399999999999997 -43.199999999999996 6.779999999999999 -50.58Q10.92 -57.96 18.06 -61.5Q25.2 -65.03999999999999 34.199999999999996 -65.03999999999999Q43.559999999999995 -65.03999999999999 50.58 -61.379999999999995Q57.599999999999994 -57.72 61.49999999999999 -50.34Q65.39999999999999 -42.96 65.39999999999999 -31.68Q65.39999999999999 -20.04 61.25999999999999 -12.66Q57.12 -5.279999999999999 49.98 -1.7999999999999998Q42.839999999999996 1.68 33.839999999999996 1.68ZM34.32 -12.6Q38.04 -12.6 40.56 -14.7Q43.08 -16.8 44.4 -20.880000000000003Q45.72 -24.96 45.72 -30.599999999999998Q45.72 -36.839999999999996 44.28 -41.099999999999994Q42.839999999999996 -45.36 40.14 -47.64Q37.44 -49.92 33.6 -49.92Q30.0 -49.92 27.48 -47.82Q24.96 -45.72 23.64 -41.64Q22.32 -37.559999999999995 22.32 -31.799999999999997Q22.32 -22.68 25.5 -17.64Q28.68 -12.6 34.32 -12.6Z M72.35999999999999 0.0V-84.0H91.32V-39.48Q95.39999999999999 -41.64 98.34 -44.4Q101.28 -47.16 103.32 -50.339999999999996Q105.35999999999999 -53.519999999999996 106.61999999999999 -56.81999999999999Q107.88 -60.12 108.72 -63.36H131.04Q129.72 -58.559999999999995 127.25999999999999 -54.059999999999995Q124.79999999999998 -49.559999999999995 121.19999999999999 -45.66Q117.6 -41.76 112.85999999999999 -38.64Q108.11999999999999 -35.519999999999996 102.35999999999999 -33.48V-32.519999999999996Q109.79999999999998 -33.72 114.53999999999999 -32.82Q119.27999999999999 -31.919999999999998 122.03999999999999 -29.46Q124.79999999999998 -27.0 126.29999999999998 -23.28Q127.79999999999998 -19.56 128.64 -15.0L131.39999999999998 0.0H110.39999999999999L109.07999999999998 -10.559999999999999Q108.6 -14.399999999999999 107.75999999999999 -17.759999999999998Q106.91999999999999 -21.119999999999997 104.51999999999998 -23.22Q102.11999999999999 -25.32 96.96 -25.32H91.32V0.0Z M153.95999999999998 1.68Q149.15999999999997 1.68 144.83999999999997 0.0Q140.51999999999998 -1.68 137.76 -5.46Q134.99999999999997 -9.24 134.99999999999997 -15.6Q134.99999999999997 -21.48 137.27999999999997 -25.14Q139.55999999999997 -28.799999999999997 143.39999999999998 -31.02Q147.23999999999998 -33.24 151.79999999999998 -34.379999999999995Q156.35999999999999 -35.519999999999996 160.79999999999998 -36.36Q167.03999999999996 -37.559999999999995 170.15999999999997 -38.28Q173.27999999999997 -39.0 174.41999999999996 -39.96Q175.55999999999997 -40.92 175.55999999999997 -42.6Q175.55999999999997 -46.08 172.97999999999996 -47.879999999999995Q170.39999999999998 -49.68 166.2 -49.68Q163.55999999999997 -49.68 160.91999999999996 -48.72Q158.27999999999997 -47.76 156.59999999999997 -45.3Q154.92 -42.839999999999996 155.03999999999996 -38.28L137.76 -39.48Q137.51999999999998 -47.04 140.03999999999996 -52.019999999999996Q142.55999999999997 -57.0 146.94 -59.82Q151.32 -62.64 156.54 -63.839999999999996Q161.76 -65.03999999999999 166.92 -65.03999999999999Q176.39999999999998 -65.03999999999999 182.51999999999998 -61.5Q188.64 -57.96 191.57999999999998 -51.3Q194.51999999999998 -44.64 194.51999999999998 -35.16V-23.88Q194.51999999999998 -19.919999999999998 194.51999999999998 -15.899999999999999Q194.51999999999998 -11.879999999999999 194.51999999999998 -7.92Q194.51999999999998 -3.96 194.51999999999998 0.0H177.71999999999997Q177.71999999999997 -4.32 177.71999999999997 -8.76Q177.71999999999997 -13.2 177.71999999999997 -18.12H176.99999999999997Q176.51999999999998 -12.719999999999999 173.45999999999998 -8.219999999999999Q170.39999999999998 -3.7199999999999998 165.41999999999996 -1.02Q160.43999999999997 1.68 153.95999999999998 1.68ZM161.99999999999997 -12.48Q164.03999999999996 -12.48 166.37999999999997 -13.26Q168.71999999999997 -14.04 170.82 -15.84Q172.92 -17.64 174.23999999999998 -20.82Q175.55999999999997 -24.0 175.55999999999997 -28.68V-31.56L178.79999999999998 -31.919999999999998Q177.83999999999997 -30.36 175.61999999999998 -29.4Q173.39999999999998 -28.439999999999998 170.64 -27.9Q167.88 -27.36 165.06 -26.82Q162.23999999999998 -26.279999999999998 159.83999999999997 -25.38Q157.43999999999997 -24.48 155.93999999999997 -22.98Q154.43999999999997 -21.48 154.43999999999997 -18.84Q154.43999999999997 -15.719999999999999 156.65999999999997 -14.1Q158.87999999999997 -12.48 161.99999999999997 -12.48Z M230.15999999999997 1.68Q223.79999999999998 1.68 218.33999999999997 0.42Q212.87999999999997 -0.84 208.85999999999996 -3.5999999999999996Q204.83999999999997 -6.359999999999999 202.73999999999998 -10.98Q200.64 -15.6 200.99999999999997 -22.2L217.92 -23.64Q218.15999999999997 -19.68 219.71999999999997 -17.1Q221.27999999999997 -14.52 224.03999999999996 -13.32Q226.79999999999998 -12.12 230.76 -12.12Q234.47999999999996 -12.12 237.17999999999995 -13.379999999999999Q239.87999999999997 -14.639999999999999 239.87999999999997 -17.64Q239.87999999999997 -19.2 238.91999999999996 -20.22Q237.95999999999998 -21.24 235.38 -22.14Q232.79999999999998 -23.04 227.87999999999997 -24.24Q221.76 -25.8 216.83999999999997 -27.36Q211.92 -28.919999999999998 208.44 -31.08Q204.95999999999998 -33.24 203.15999999999997 -36.42Q201.35999999999999 -39.6 201.35999999999999 -44.28Q201.35999999999999 -50.879999999999995 204.89999999999998 -55.5Q208.43999999999997 -60.12 214.67999999999998 -62.58Q220.92 -65.03999999999999 229.07999999999998 -65.03999999999999Q236.39999999999998 -65.03999999999999 242.76 -62.75999999999999Q249.11999999999998 -60.48 252.77999999999997 -55.31999999999999Q256.44 -50.16 255.47999999999996 -41.64L238.91999999999996 -40.08Q239.27999999999997 -43.559999999999995 237.95999999999998 -46.019999999999996Q236.64 -48.48 234.11999999999998 -49.739999999999995Q231.59999999999997 -51.0 227.99999999999997 -51.0Q223.92 -51.0 221.7 -49.5Q219.47999999999996 -48.0 219.47999999999996 -45.72Q219.47999999999996 -43.92 220.85999999999996 -42.66Q222.23999999999998 -41.4 225.17999999999998 -40.5Q228.11999999999998 -39.6 232.79999999999998 -38.519999999999996Q236.87999999999997 -37.68 241.32 -36.36Q245.76 -35.04 249.59999999999997 -32.82Q253.43999999999997 -30.599999999999998 255.83999999999997 -27.0Q258.23999999999995 -23.4 258.23999999999995 -17.88Q258.23999999999995 -12.0 254.99999999999997 -7.5600000000000005Q251.76 -3.12 245.51999999999998 -0.7200000000000001Q239.27999999999997 1.68 230.15999999999997 1.68Z" fill="#3B2A22" /><path d="M274.08 -67.92Q268.55999999999995 -67.92 265.61999999999995 -70.26Q262.67999999999995 -72.60000000000001 262.67999999999995 -77.04Q262.67999999999995 -81.60000000000001 265.61999999999995 -83.94Q268.55999999999995 -86.28 274.08 -86.28Q279.71999999999997 -86.28 282.65999999999997 -83.88Q285.59999999999997 -81.48 285.59999999999997 -77.04Q285.59999999999997 -72.72 282.65999999999997 -70.32Q279.71999999999997 -67.92 274.08 -67.92Z" fill="#E0B84C" /><path d="M264.47999999999996 0.0V-63.36H283.91999999999996V0.0Z" fill="#3B2A22" /><polygon points="302.90764799999994,-59.127551999999994 368.78177279999994,-59.127551999999994 395.3625599999999,-31.68 368.78177279999994,-4.232448000000003 302.90764799999994,-4.232448000000003" fill="#A8342F" stroke="#A8342F" stroke-width="17.335295999999996" stroke-linejoin="round"/><circle cx="326.0213759999999" cy="-31.68" r="16.612992" fill="#E0B84C"/><polyline points="355.72251647999997,-43.959168 365.54585088,-31.68 355.72251647999997,-19.400832" fill="none" stroke="#F4EFD8" stroke-width="7.584191999999999" stroke-linecap="round" stroke-linejoin="round"/><polyline points="373.2889497599999,-43.959168 383.11228415999994,-31.68 373.2889497599999,-19.400832" fill="none" stroke="#F4EFD8" stroke-width="7.584191999999999" stroke-linecap="round" stroke-linejoin="round"/><path d="M417.3502079999999 0.0V-35.879999999999995V-63.36H433.7902079999999V-37.559999999999995H434.75020799999993Q435.4702079999999 -46.92 437.87020799999993 -52.980000000000004Q440.2702079999999 -59.04 444.7102079999999 -62.03999999999999Q449.1502079999999 -65.03999999999999 455.9902079999999 -65.03999999999999Q466.3102079999999 -65.03999999999999 471.5302079999999 -58.199999999999996Q476.75020799999993 -51.36 476.75020799999993 -37.8V0.0H457.3102079999999V-35.28Q457.3102079999999 -41.76 455.33020799999986 -45.0Q453.3502079999999 -48.239999999999995 449.0302079999999 -48.239999999999995Q445.4302079999999 -48.239999999999995 442.6702079999999 -45.72Q439.9102079999999 -43.199999999999996 438.3502079999999 -37.559999999999995Q436.7902079999999 -31.919999999999998 436.7902079999999 -22.439999999999998V0.0Z" fill="#3B2A22" /></g></svg>
+    <div class="kicker">it's a match</div>
+    <h1>They're <em>such</em> a match.</h1>
+    <div class="pair">
+      <div class="av you"><div class="ph"><svg viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-5 0-9 2.5-9 6v2h18v-2c0-3.5-4-6-9-6z"/></svg></div><span>you.jpg</span></div>
+      <div class="av them"><div class="ph"><img id="mImg" src="" alt=""></div><span id="mFile">mica.jpg</span></div>
+      <div class="heart"><svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.5-9A5.5 5.5 0 0 1 12 6.2 5.5 5.5 0 0 1 21.5 12c-2 4.4-9.5 9-9.5 9z"/></svg></div>
+    </div>
+    <div class="who"><b id="mHandle">@mica.beauty</b><span id="mMeta">Makeup Artist · Quezon City</span></div>
+    <div class="sum"><span>Based on your swipes, your style is <b id="mStyle">Soft Glam · Korean · Bridal</b></span><span>Matched for <b id="mEvt">your debut</b> · <b id="mCount">3</b> creatives liked</span></div>
+    <button class="btn gold" id="msg">Send a message</button>
+    <button class="link" id="again">Keep swiping</button>
+  </section>
+
+  <!-- ===== Screen 4: chat ===== -->
+  <section class="screen chat" id="s4" aria-label="Conversation">
+    <div class="bar">
+      <button class="icon" id="chatBack" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button>
+      <div class="av"><img id="chatAv" src="" alt=""></div>
+      <div class="who"><b id="chatName"></b><span id="chatStatus">matched · usually replies in 1h</span></div>
+    </div>
+    <div class="msgs" id="msgs"></div>
+    <div class="quick" id="quick"></div>
+    <form class="compose" id="compose">
+      <input id="compIn" placeholder="Message" autocomplete="off" aria-label="Message">
+      <button type="submit" aria-label="Send"><svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button>
+    </form>
+  </section>
+
+  <!-- ===== Screen 5: booking ===== -->
+  <section class="screen book" id="s5" aria-label="Booking">
+    <div class="bar"><button class="icon" id="bookBack" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button><h2>Review booking</h2></div>
+    <div class="scroll">
+      <div class="stub">
+        <div class="top"><div class="av"><img id="bkAv" src="" alt=""></div><div><b id="bkName"></b><span id="bkRole"></span></div></div>
+        <dl>
+          <div><dt>event</dt><dd id="bkEvt"></dd></div>
+          <div><dt>date</dt><dd>Sat, 22 Nov 2026<small>call time 12:30 PM</small></dd></div>
+          <div><dt>venue</dt><dd>Blue Leaf Cosmopolitan<small>Taguig</small></dd></div>
+          <div><dt>trial</dt><dd>Sat, 8 Nov · 10:00 AM<small>at your place</small></dd></div>
+          <div style="grid-column:span 2"><dt>package</dt><dd id="bkPkg"></dd></div>
+        </dl>
+      </div>
+      <div class="tot">
+        <div class="row"><span id="bkL1"></span><span id="bkP1"></span></div>
+        <div class="row"><span id="bkL2"></span><span id="bkP2"></span></div>
+        <div class="row"><span>Travel (Taguig)</span><span>included</span></div>
+        <div class="row big"><span>Total</span><b id="bkTot"></b></div>
+        <div class="row dep"><span>Deposit to hold the date (30%)</span><span id="bkDep"></span></div>
+      </div>
+      <div class="pay"><h3>pay deposit with</h3><div class="opts" role="radiogroup"><button class="opt" role="radio" aria-checked="true">GCash</button><button class="opt" role="radio" aria-checked="false">Maya</button><button class="opt" role="radio" aria-checked="false">Card</button></div></div>
+      <p class="terms">Deposit is held by okasion and released to the creative after the trial. Balance is paid on the event day. Free reschedule up to 14 days before; the deposit is refundable if the creative cancels.</p>
+    </div>
+    <div class="actions"><button class="btn brick" id="confirmBtn">Confirm &amp; pay deposit</button></div>
+  </section>
+
+  <!-- ===== Screen 6: confirmed ===== -->
+  <section class="screen done" id="s6" aria-label="Booking confirmed">
+    <div class="stars" id="stars2"></div>
+    <div class="scroll">
+      <div class="kicker">booked</div>
+      <h1>See you at the <em>okasion.</em></h1>
+      <div class="ref"><span class="k">booking ref</span><div class="stampok">okasion<br>confirmed</div><b id="refNo">OK-2026-0421</b><span class="k" id="refLine"></span></div>
+      <div>
+        <h3 style="font-family:'Space Mono',monospace;font-size:11px;font-weight:400;color:var(--brick);margin-bottom:12px">what happens next</h3>
+        <ul class="tl">
+          <li class="ok"><b>Deposit paid</b><span id="tl1"></span><small>done · receipt sent to your email</small></li>
+          <li class="now"><b>Trial</b><span>Sat, 8 Nov · 10:00 AM · at your place. Bring your reference photos and the dress if you have it.</span><small>reminder 2 days before</small></li>
+          <li><b>Final details</b><span>Confirm call time and venue with <em id="tl3"></em> in chat one week out.</span></li>
+          <li><b>Event day</b><span>Sat, 22 Nov · call time 12:30 PM. Balance due on the day, in-app or cash.</span></li>
+          <li><b>Leave a review</b><span>Rate the match and tag the look. It sharpens the deck for the next debutante.</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="actions"><button class="btn gold" id="openChat2">Open the chat</button><button class="link" id="restart">Start over</button></div>
+  </section>
+</div>
+<div class="hint">prototype · <b>←</b><b>→</b> to swipe · or drag the card</div>
+
+<script>
+(function(){
+const PROFILES=[{"handle": "@mica.beauty", "role": "Makeup Artist", "loc": "Quezon City", "tags": ["Soft Glam", "Korean", "Bridal"], "img": "https://images.unsplash.com/photo-1522337660859-02fbefca4702?auto=format&fit=crop&w=800&h=1000&q=80", "bio": "Soft glam that survives a 12-hour debut. I work with your skin, not over it, and I bring my own ring light and touch-up kit for the after-party.", "rate": "\u20b13,500", "unit": "per look \u00b7 trial \u20b11,500", "avail": "Weekends booked through Nov \u00b7 weekdays open", "port": ["https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1492633423870-43d1cd2775eb?auto=format&fit=crop&w=800&h=1000&q=80"]}, {"handle": "@glow.by.ren", "role": "Makeup Artist", "loc": "Makati", "tags": ["Clean Girl", "Natural", "Debut"], "img": "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=800&h=1000&q=80", "bio": "Clean-girl and no-makeup makeup for grads and first-jobbers. Skin prep first, always. Half my clients send me their Pinterest board and I match it.", "rate": "\u20b12,800", "unit": "per look \u00b7 trial \u20b11,200", "avail": "Open most dates", "port": ["https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1478146896981-b80fe463b330?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1452587925148-ce544e77e70d?auto=format&fit=crop&w=800&h=1000&q=80"]}, {"handle": "@liwanag.studio", "role": "Photographer", "loc": "Pasig", "tags": ["Film", "Candid", "Cinematic"], "img": "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=800&h=1000&q=80", "bio": "Film and film-look digital for weddings and debuts. Candid over posed, natural light over strobes, and a same-day teaser you can post that night.", "rate": "\u20b118,000", "unit": "half day \u00b7 \u20b132,000 full day", "avail": "3 Saturdays left this quarter", "port": ["https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&h=1000&q=80"]}, {"handle": "@atelier.paz", "role": "Dressmaker", "loc": "Marikina", "tags": ["Romantic", "Modern", "Custom"], "img": "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&h=1000&q=80", "bio": "Custom gowns and made-to-measure entourage pieces. Romantic silhouettes in modern fabrics, six-week lead time, three fittings included.", "rate": "\u20b115,000", "unit": "custom from \u00b7 rental from \u20b14,500", "avail": "Accepting orders for Dec onward", "port": ["https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=800&h=1000&q=80"]}, {"handle": "@editorial.ana", "role": "Makeup Artist", "loc": "BGC", "tags": ["Editorial", "Full Glam", "Avant-Garde"], "img": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&h=1000&q=80", "bio": "Editorial and avant-garde looks for shoots and creative debuts. If you want a magazine cover, not a yearbook photo, this is the deck to swipe right on.", "rate": "\u20b14,500", "unit": "per look \u00b7 trial \u20b12,000", "avail": "Limited slots \u00b7 book 3 weeks ahead", "port": ["https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=800&h=1000&q=80"]}, {"handle": "@waves.by.jo", "role": "Hairstylist", "loc": "Mandaluyong", "tags": ["Hollywood Waves", "Sleek", "Romantic"], "img": "https://images.unsplash.com/photo-1492633423870-43d1cd2775eb?auto=format&fit=crop&w=800&h=1000&q=80", "bio": "Hollywood waves, sleek buns, and romantic half-ups that hold in Manila humidity. Extensions available on request.", "rate": "\u20b12,500", "unit": "per style \u00b7 trial \u20b11,000", "avail": "Open most dates", "port": ["https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1522337660859-02fbefca4702?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&h=1000&q=80"]}, {"handle": "@studio.halina", "role": "Photographer", "loc": "Tagaytay", "tags": ["Editorial", "Studio", "Minimalist"], "img": "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&h=1000&q=80", "bio": "Editorial studio portraits and minimalist wedding coverage. Two shooters, colour-graded gallery in 14 days, prints optional.", "rate": "\u20b125,000", "unit": "full day \u00b7 studio session \u20b16,000", "avail": "Weekends limited \u00b7 weekdays open", "port": ["https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1492633423870-43d1cd2775eb?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1478146896981-b80fe463b330?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=800&h=1000&q=80"]}, {"handle": "@fiesta.house", "role": "Event Stylist", "loc": "Antipolo", "tags": ["Garden", "Filipino Traditional", "Boho"], "img": "https://images.unsplash.com/photo-1478146896981-b80fe463b330?auto=format&fit=crop&w=800&h=1000&q=80", "bio": "Garden and Filipino-traditional event styling: capiz, banderitas, bougainvillea, and a modern eye. We build the set, you enjoy the party.", "rate": "\u20b135,000", "unit": "styling from \u00b7 venue not included", "avail": "Q4 bookings closing soon", "port": ["https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1452587925148-ce544e77e70d?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=800&h=1000&q=80"]}, {"handle": "@bulaklak.co", "role": "Event Stylist", "loc": "Quezon City", "tags": ["Tropical", "Wildflower", "Pastel"], "img": "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=800&h=1000&q=80", "bio": "Tropical and wildflower arrangements for ceremonies, tables, and bouquets. Locally sourced from Benguet and Laguna growers.", "rate": "\u20b18,000", "unit": "ceremony set from \u00b7 bouquet \u20b12,500", "avail": "Open most dates", "port": ["https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=800&h=1000&q=80"]}, {"handle": "@rosa.couture", "role": "Dressmaker", "loc": "San Juan", "tags": ["Classic", "Glamorous", "Traditional"], "img": "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=800&h=1000&q=80", "bio": "Classic and glamorous ballgowns for debuts, beaded by hand. Rental wardrobe of 40 gowns if you'd rather not commission.", "rate": "\u20b112,000", "unit": "custom from \u00b7 rental from \u20b13,800", "avail": "Fittings Tue\u2013Sat", "port": ["https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&w=800&h=1000&q=80"]}, {"handle": "@lens.by.miko", "role": "Photographer", "loc": "Manila", "tags": ["Street", "Candid", "Film"], "img": "https://images.unsplash.com/photo-1452587925148-ce544e77e70d?auto=format&fit=crop&w=800&h=1000&q=80", "bio": "Street and candid photography for grads and pre-events. Documentary style, minimal direction, fast turnaround.", "rate": "\u20b19,000", "unit": "half day \u00b7 \u20b116,000 full day", "avail": "Open most dates", "port": ["https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1522337660859-02fbefca4702?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=800&h=1000&q=80"]}, {"handle": "@braids.by.tin", "role": "Hairstylist", "loc": "Para\u00f1aque", "tags": ["Braids", "Updo", "Korean"], "img": "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=800&h=1000&q=80", "bio": "Braids, updos, and Korean-style curls for debuts and proms. Hair prep included; I come to you.", "rate": "\u20b12,200", "unit": "per style \u00b7 trial \u20b1900", "avail": "Open most dates", "port": ["https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1492633423870-43d1cd2775eb?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&h=1000&q=80"]}, {"handle": "@minimal.mae", "role": "Makeup Artist", "loc": "Alabang", "tags": ["Natural", "Clean Girl", "Korean"], "img": "https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?auto=format&fit=crop&w=800&h=1000&q=80", "bio": "Natural, clean-girl makeup that photographs well and feels like nothing. Popular with grads and civil-wedding brides.", "rate": "\u20b12,600", "unit": "per look \u00b7 trial \u20b11,100", "avail": "Open most dates", "port": ["https://images.unsplash.com/photo-1478146896981-b80fe463b330?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1452587925148-ce544e77e70d?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=800&h=1000&q=80"]}, {"handle": "@luxe.tables", "role": "Event Stylist", "loc": "Makati", "tags": ["Luxury", "Elegant", "Modern"], "img": "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=800&h=1000&q=80", "bio": "Luxury tablescapes and modern ceremony design. Full-service styling with rentals, lighting, and a day-of coordinator.", "rate": "\u20b160,000", "unit": "styling from \u00b7 rentals included", "avail": "Booking 2027", "port": ["https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&h=1000&q=80"]}, {"handle": "@dress.by.dane", "role": "Dressmaker", "loc": "Cubao", "tags": ["Minimalist", "Modern", "Avant-Garde"], "img": "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=800&h=1000&q=80", "bio": "Minimalist, modern, occasionally avant-garde. Structured pieces for people who don't want tulle. Four-week lead time.", "rate": "\u20b114,000", "unit": "custom from \u00b7 rental from \u20b15,000", "avail": "Accepting orders", "port": ["https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=800&h=1000&q=80"]}];
+const BACKUP=["https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=800&h=1000&q=80", "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=800&h=1000&q=80"];
+const PIN=`<svg viewBox="0 0 24 24" class="pin"><path d="M12 22s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>`;
+const s1=document.getElementById('s1'),s2=document.getElementById('s2'),s3=document.getElementById('s3'),s4=document.getElementById('s4'),s5=document.getElementById('s5'),s6=document.getElementById('s6');
+const stack=document.getElementById('stack'),counter=document.getElementById('counter'),toast=document.getElementById('toast');
+const evt=document.getElementById('evt'),err=document.getElementById('err');
+let svc=null,deck=[],idx=0,likes=[],history=[],busy=false;
+let bi=0;function onFail(img){if(bi<BACKUP.length){img.src=BACKUP[bi++];}else{img.style.visibility='hidden';}}
+document.querySelectorAll('img').forEach(i=>i.addEventListener('error',()=>onFail(i)));
+
+document.querySelectorAll('#svc .chip').forEach(c=>c.addEventListener('click',()=>{
+  document.querySelectorAll('#svc .chip').forEach(x=>x.setAttribute('aria-checked','false'));
+  c.setAttribute('aria-checked','true');svc=c.dataset.svc;err.textContent='';
+}));
+function show(s){[s1,s2,s3,s4,s5,s6].forEach(x=>x.classList.remove('active'));s.classList.add('active');}
+document.getElementById('go').addEventListener('click',()=>{
+  if(!evt.value.trim()){err.textContent='Tell us the event first.';evt.focus();return;}
+  if(!svc){err.textContent='Pick who you need.';return;}
+  buildDeck();show(s2);
+});
+document.getElementById('back').addEventListener('click',()=>show(s1));
+
+function buildDeck(){
+  const primary=PROFILES.filter(p=>p.role===svc),rest=PROFILES.filter(p=>p.role!==svc);
+  deck=[...primary,...rest];idx=0;likes=[];history=[];
+  document.getElementById('svcTitle').textContent=svc;
+  document.getElementById('evtTitle').textContent='for your '+evt.value.trim().toLowerCase();
+  render();
+}
+function fit(p){return 84+((p.handle.length*7)%15);}
+function cardEl(p,pos){
+  const el=document.createElement('article');el.className='card'+(pos?' pos'+pos:'');
+  el.innerHTML=`<div class="ph"><img src="${p.img}" alt="${p.role} portfolio by ${p.handle}" draggable="false"><div class="fit"><i></i>${fit(p)}% style fit</div><div class="rate">from ${p.rate}</div><div class="stamp like">MATCH</div><div class="stamp nope">PASS</div></div>
+  <div class="cap"><div class="row"><h2>${p.handle}</h2><span class="loc">${PIN}${p.loc}</span></div><div class="role">${p.role}</div><div class="tags">${p.tags.map(t=>`<span class="tag${p.role===svc?' hit':''}">${t}</span>`).join('')}</div><button class="more" data-open>view portfolio &amp; rates <svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button></div>`;
+  el.querySelector('[data-open]').addEventListener('click',e=>{e.stopPropagation();openSheet(p);});
+  el.querySelector('img').addEventListener('error',e=>onFail(e.target));
+  if(pos===0)drag(el);
+  return el;
+}
+function render(){
+  stack.innerHTML='';
+  if(idx>=deck.length){stack.innerHTML='<div class="empty">That\'s everyone on the board for now. Check back tomorrow, or widen your filters.</div>';counter.textContent='';if(likes.length)finale();return;}
+  for(let pos=2;pos>=0;pos--){const p=deck[idx+pos];if(p)stack.appendChild(cardEl(p,pos));}
+  counter.textContent=`${idx+1} / ${deck.length} · ${likes.length} liked`;
+}
+function swipe(dir){
+  if(busy||idx>=deck.length)return;busy=true;
+  const top=stack.querySelector('.card:not(.pos1):not(.pos2)');if(!top){busy=false;return;}
+  top.classList.remove('dragging');top.style.transform='';
+  top.querySelector(dir>0?'.stamp.like':'.stamp.nope').style.opacity=1;
+  top.classList.add(dir>0?'gone-r':'gone-l');
+  const p=deck[idx];history.push({i:idx,liked:dir>0});
+  if(dir>0)likes.push(p);
+  setTimeout(()=>{idx++;busy=false;if(dir>0&&likes.length===3){render();finale();}else render();},380);
+}
+document.getElementById('like').addEventListener('click',()=>swipe(1));
+document.getElementById('pass').addEventListener('click',()=>swipe(-1));
+document.getElementById('undo').addEventListener('click',()=>{if(busy||!history.length)return;const h=history.pop();idx=h.i;if(h.liked)likes.pop();render();ping('Brought back '+deck[idx].handle);});
+document.getElementById('filter').addEventListener('click',()=>ping('Filters: '+svc+' · '+evt.value.trim()+' · Metro Manila'));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet();if(!s2.classList.contains('active')||sheet.classList.contains('open'))return;if(e.key==='ArrowRight')swipe(1);if(e.key==='ArrowLeft')swipe(-1);});
+function ping(t){toast.textContent=t;toast.classList.add('show');clearTimeout(ping.t);ping.t=setTimeout(()=>toast.classList.remove('show'),1600);}
+
+function drag(el){
+  let sx=0,dx=0,down=false;
+  el.addEventListener('pointerdown',e=>{if(busy||e.target.closest('[data-open]'))return;down=true;sx=e.clientX;el.setPointerCapture(e.pointerId);el.classList.add('dragging');});
+  el.addEventListener('pointermove',e=>{if(!down)return;dx=e.clientX-sx;el.style.transform=`translateX(${dx}px) rotate(${dx/14}deg)`;
+    el.querySelector('.stamp.like').style.opacity=Math.min(1,Math.max(0,dx/80));el.querySelector('.stamp.nope').style.opacity=Math.min(1,Math.max(0,-dx/80));});
+  const up=()=>{if(!down)return;down=false;el.classList.remove('dragging');if(Math.abs(dx)>90){swipe(dx>0?1:-1);}else{el.style.transform='';el.querySelectorAll('.stamp').forEach(s=>s.style.opacity=0);}dx=0;};
+  el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);
+}
+
+
+/* ---- profile sheet ---- */
+const sheet=document.getElementById('sheet'),sheetScroll=document.getElementById('sheetScroll');
+function openSheet(p){
+  const img=document.getElementById('phImg');img.src=p.img;img.alt=p.role+' portfolio by '+p.handle;img.onerror=()=>onFail(img);
+  document.getElementById('phFit').innerHTML='<i></i>'+fit(p)+'% style fit';
+  document.getElementById('phHandle').textContent=p.handle;
+  document.getElementById('phRole').textContent=p.role;
+  document.getElementById('phLoc').innerHTML=PIN+p.loc;
+  document.getElementById('phRate').textContent=p.rate;
+  document.getElementById('phUnit').textContent=p.unit;
+  document.getElementById('phAvail').textContent=p.avail;
+  document.getElementById('phBio').textContent=p.bio;
+  document.getElementById('phPort').innerHTML=p.port.map((src,k)=>`<figure><div class="pph"><img src="${src}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"></div><span>${p.handle.replace('@','')}_0${k+1}.jpg</span></figure>`).join('');
+  document.getElementById('phTags').innerHTML=p.tags.map(t=>`<span class="tag${p.role===svc?' hit':''}">${t}</span>`).join('');
+  sheetScroll.scrollTop=0;sheet.classList.add('open');
+}
+function closeSheet(){sheet.classList.remove('open');}
+document.getElementById('sheetClose').addEventListener('click',closeSheet);
+document.getElementById('phPass').addEventListener('click',()=>{closeSheet();setTimeout(()=>swipe(-1),250);});
+document.getElementById('phLike').addEventListener('click',()=>{closeSheet();setTimeout(()=>swipe(1),250);});
+sheetScroll.addEventListener('scroll',()=>{if(sheetScroll.scrollTop<-60)closeSheet();});
+
+function finale(){
+  const p=likes[likes.length-1];
+  document.getElementById('mImg').src=p.img;
+  document.getElementById('mFile').textContent=p.handle.replace('@','').replace(/\./g,'_')+'.jpg';
+  document.getElementById('mHandle').textContent=p.handle;
+  document.getElementById('mMeta').textContent=p.role+' · '+p.loc;
+  const freq={};likes.forEach(l=>l.tags.forEach(t=>freq[t]=(freq[t]||0)+1));
+  document.getElementById('mStyle').textContent=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]).join(' · ');
+  document.getElementById('mEvt').textContent='your '+evt.value.trim().toLowerCase();
+  document.getElementById('mCount').textContent=likes.length;
+  const st=document.getElementById('stars');st.innerHTML='';
+  [[8,18],[84,14],[12,58],[88,60],[50,9],[28,36],[72,42]].forEach(([x,y],i)=>{const s=document.createElement('span');s.textContent='✳';s.style.left=x+'%';s.style.top=y+'%';s.style.animationDelay=(i*.08)+'s';st.appendChild(s);});
+  show(s3);
+}
+document.getElementById('msg').addEventListener('click',()=>{const b=document.getElementById('msg');b.textContent='Message sent';b.classList.remove('gold');b.style.background='var(--olive)';b.style.color='#fff';setTimeout(()=>{b.textContent='Send a message';b.classList.add('gold');b.style.background='';b.style.color='';},1800);});
+
+/* ---- chat, booking, confirmation ---- */
+const msgs=document.getElementById('msgs'),quick=document.getElementById('quick');
+let matchP=null,chatDone=false,script=[],si=0;
+function money(n){return '₱'+n.toLocaleString('en-PH');}
+function num(r){return parseInt(r.replace(/[^\d]/g,''),10);}
+function pkg(p){
+  const base=num(p.rate);
+  if(p.role==='Makeup Artist'||p.role==='Hairstylist'){const trial=Math.round(base*0.43/100)*100;return {l1:p.role==='Makeup Artist'?'Debut look':'Event style',p1:base,l2:'Trial session',p2:trial,name:(p.role==='Makeup Artist'?'Debut look + trial':'Event style + trial')};}
+  if(p.role==='Photographer')return {l1:'Half-day coverage',p1:base,l2:'Same-day teaser edit',p2:2000,name:'Half-day coverage + teaser'};
+  if(p.role==='Dressmaker')return {l1:'Custom gown',p1:base,l2:'3 fittings',p2:0,name:'Custom gown, 3 fittings'};
+  return {l1:'Styling package',p1:base,l2:'Day-of setup crew',p2:5000,name:'Styling + day-of setup'};
+}
+function addMsg(who,text,t){const d=document.createElement('div');d.className='m '+who;d.innerHTML=text+`<time>${t||now()}</time>`;msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;return d;}
+function now(){const d=new Date();return d.getHours()%12||12;}
+function nowT(){const d=new Date(),h=d.getHours(),m=d.getMinutes();return `${h%12||12}:${m<10?'0':''}${m} ${h<12?'AM':'PM'}`;}
+function typing(ms){return new Promise(r=>{const t=document.createElement('div');t.className='typing';t.innerHTML='<i></i><i></i><i></i>';msgs.appendChild(t);msgs.scrollTop=msgs.scrollHeight;setTimeout(()=>{t.remove();r();},ms);});}
+function buildScript(p){
+  const k=pkg(p),first=p.handle.replace('@','').split('.')[0],ev=evt.value.trim().toLowerCase();
+  const tot=k.p1+k.p2;
+  return [
+    {me:`Hi ${first}! We matched for my ${ev} on Nov 22. Looking for ${p.tags[0].toLowerCase()}, medyo ${p.tags[1].toLowerCase()}, and something that lasts the whole night.`},
+    {them:`Hi! Congrats on the ${ev}. Nov 22 is open on my end. Daytime or evening?`},
+    {me:`Evening, 6 PM at Blue Leaf Cosmopolitan. Pictorial at 3 PM.`},
+    {them:`Perfect. Let's start at 12:30 so you're camera-ready by 3. ${k.p2?'Do you want a trial first? I always recommend it for a big one.':'I can send a mood board draft this week so we lock the direction early.'}`},
+    {me:k.p2?`Yes please! Magkano lahat?`:`That works. Magkano lahat?`},
+    {them:`${k.l1} ${money(k.p1)}${k.p2?` + ${k.l2.toLowerCase()} ${money(k.p2)} = ${money(tot)}`:''}. Travel to Taguig included. 30% deposit holds the date, balance on the day.`},
+    {me:`Deal. Trial on Nov 8, Saturday?`},
+    {them:`Nov 8, 10 AM works. Sending the booking proposal now so it's all in one place.`},
+    {proposal:true}
+  ];
+}
+function quickFor(){quick.innerHTML='';if(chatDone)return;const opts=script[si]&&script[si].me?[script[si].me]:[];opts.forEach(t=>{const b=document.createElement('button');b.textContent=t.length>34?t.slice(0,32)+'…':t;b.addEventListener('click',()=>step(t));quick.appendChild(b);});}
+async function step(text){
+  if(chatDone)return;
+  const cur=script[si];
+  if(cur&&cur.me){addMsg('me',text||cur.me,nowT());si++;}
+  quick.innerHTML='';
+  while(script[si]&&!script[si].me){
+    const c=script[si];
+    if(c.them){await typing(900+Math.random()*600);addMsg('them',c.them,nowT());}
+    if(c.proposal){await typing(700);renderProposal();}
+    si++;
+  }
+  if(!script[si])chatDone=true;
+  quickFor();
+}
+function renderProposal(){
+  const k=pkg(matchP),tot=k.p1+k.p2,dep=Math.round(tot*0.3);
+  const d=document.createElement('div');d.className='proposal';
+  d.innerHTML=`<span class="k">booking proposal</span><b>${k.name}</b>
+  <div class="line"><span>Sat, 22 Nov · call time 12:30 PM</span><em>Blue Leaf, Taguig</em></div>
+  ${k.p2?`<div class="line"><span>Trial · Sat, 8 Nov · 10 AM</span><em>${money(k.p2)}</em></div>`:''}
+  <div class="line"><span>Total</span><em>${money(tot)}</em></div>
+  <div class="line"><span>Deposit to hold the date</span><em>${money(dep)}</em></div>
+  <button class="btn brick" id="reviewBk">Review &amp; book</button>`;
+  msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
+  d.querySelector('#reviewBk').addEventListener('click',()=>openBooking());
+  document.getElementById('chatStatus').textContent='proposal sent · awaiting your confirmation';
+}
+function openChat(p){
+  matchP=p;const first=p.handle.replace('@','');
+  const av=document.getElementById('chatAv');av.src=p.img;av.onerror=()=>onFail(av);
+  document.getElementById('chatName').textContent=p.handle;
+  document.getElementById('chatStatus').textContent='matched · usually replies in 1h';
+  msgs.innerHTML='<div class="day">matched today · '+first+' · '+p.role+'</div>';
+  script=buildScript(p);si=0;chatDone=false;
+  show(s4);quickFor();
+}
+document.getElementById('compose').addEventListener('submit',e=>{e.preventDefault();const v=document.getElementById('compIn').value.trim();if(!v)return;document.getElementById('compIn').value='';if(script[si]&&script[si].me){step(v);}else{addMsg('me',v,nowT());}});
+document.getElementById('chatBack').addEventListener('click',()=>show(s3));
+document.getElementById('msg').replaceWith(document.getElementById('msg').cloneNode(true));
+document.getElementById('msg').addEventListener('click',()=>openChat(likes[likes.length-1]));
+document.getElementById('openChat2').addEventListener('click',()=>show(s4));
+
+function openBooking(){
+  const p=matchP,k=pkg(p),tot=k.p1+k.p2,dep=Math.round(tot*0.3);
+  const av=document.getElementById('bkAv');av.src=p.img;av.onerror=()=>onFail(av);
+  document.getElementById('bkName').textContent=p.handle;document.getElementById('bkRole').textContent=p.role+' · '+p.loc;
+  document.getElementById('bkEvt').textContent=evt.value.trim();
+  document.getElementById('bkPkg').textContent=k.name;
+  document.getElementById('bkL1').textContent=k.l1;document.getElementById('bkP1').textContent=money(k.p1);
+  document.getElementById('bkL2').textContent=k.l2;document.getElementById('bkP2').textContent=k.p2?money(k.p2):'included';
+  document.getElementById('bkTot').textContent=money(tot);document.getElementById('bkDep').textContent=money(dep);
+  show(s5);
+}
+document.querySelectorAll('.pay .opt').forEach(o=>o.addEventListener('click',()=>{document.querySelectorAll('.pay .opt').forEach(x=>x.setAttribute('aria-checked','false'));o.setAttribute('aria-checked','true');}));
+document.getElementById('bookBack').addEventListener('click',()=>show(s4));
+document.getElementById('confirmBtn').addEventListener('click',()=>{
+  const b=document.getElementById('confirmBtn');b.disabled=true;b.textContent='Processing…';
+  setTimeout(()=>{b.disabled=false;b.textContent='Confirm & pay deposit';
+    const p=matchP,k=pkg(p),tot=k.p1+k.p2,dep=Math.round(tot*0.3);
+    document.getElementById('refNo').textContent='OK-2026-'+String(1000+Math.floor(Math.random()*9000));
+    document.getElementById('refLine').textContent=p.handle+' · '+evt.value.trim()+' · 22 Nov';
+    document.getElementById('tl1').textContent=money(dep)+' via GCash · balance '+money(tot-dep)+' on the day';
+    document.getElementById('tl3').textContent=p.handle;
+    const st=document.getElementById('stars2');st.innerHTML='';
+    [[6,6],[90,8],[14,30],[86,34]].forEach(([x,y],i)=>{const e=document.createElement('span');e.textContent='✳';e.style.left=x+'%';e.style.top=y+'%';e.style.animationDelay=(i*.08)+'s';st.appendChild(e);});
+    show(s6);
+    addMsg('them','Deposit received. Nov 22 is yours. See you at the trial on the 8th!',nowT());
+    document.getElementById('chatStatus').textContent='booked · Nov 22';
+  },900);
+});
+document.getElementById('restart').addEventListener('click',()=>{likes=[];history=[];idx=0;show(s1);});
+
+document.getElementById('again').addEventListener('click',()=>{likes=[];show(s2);render();});
+})();
+</script>
+</body>
+</html>
